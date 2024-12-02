@@ -80,10 +80,10 @@ public class DataSinkTests
 
 
     [Fact]
-    public async Task DynamicBufferedDataSink()
+    public async Task ElasticWorkerDataSink()
     {
 
-        var bufferedSink = new DynamicBufferedDataSink<string>(
+        var bufferedSink = new ElasticWorkerDataSink<string>(
             minWorkers: 3,
             maxWorkers: 6,
             scalingFactor: 4,

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace Carubbi.DataSinks;
-public class DynamicBufferedDataSink<T> : IDataSink<T>
+public class ElasticWorkerDataSink<T> : IDataSink<T>
 {
     private readonly Func<T, Task> _process;
     private readonly int _maxWorkers;
@@ -14,7 +13,7 @@ public class DynamicBufferedDataSink<T> : IDataSink<T>
     private int _currentWorkerCount = 0;
     private double _scalingFactor;
 
-    public DynamicBufferedDataSink(int minWorkers, int maxWorkers, double scalingFactor, Func<T, Task> process)
+    public ElasticWorkerDataSink(int minWorkers, int maxWorkers, double scalingFactor, Func<T, Task> process)
     {
         if (minWorkers <= 0 || maxWorkers < minWorkers)
             throw new ArgumentException("Invalid worker limits.");
