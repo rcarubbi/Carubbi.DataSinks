@@ -7,14 +7,14 @@
 You can add the library to your project using one of the following methods:
 
 ### Package Manager
-\```bash
+```bash
 Install-Package Carubbi.DataSinks
-\```
+```
 
 ### .NET CLI
-\```bash
+```bash
 dotnet add package Carubbi.DataSinks
-\```
+```
 
 ---
 
@@ -23,6 +23,7 @@ dotnet add package Carubbi.DataSinks
 - **Batching Data Sink**: Processes data in configurable batches (size and time-based).
 - **Delayed Data Sink**: Delays processing of each item by a specified timeout.
 - **Buffered Data Sink**: Manages high-concurrency workflows with worker pools and buffering.
+- **Elastic Worker Data Sink**: Dynamically scales worker threads based on queue size and demand.
 
 ---
 
@@ -32,7 +33,7 @@ dotnet add package Carubbi.DataSinks
 
 Processes items in batches based on size or time limits.
 
-\```csharp
+```csharp
 var batchingSink = new BatchingDataSink<string>(
     batchSize: 10,
     timeLimit: TimeSpan.FromSeconds(5),
@@ -46,7 +47,7 @@ await batchingSink.ProcessAsync("Item1");
 await batchingSink.ProcessAsync("Item2");
 // Add more items...
 await batchingSink.CompleteAsync();
-\```
+```
 
 ---
 
@@ -54,7 +55,7 @@ await batchingSink.CompleteAsync();
 
 Delays processing of each item for a configurable amount of time.
 
-\```csharp
+```csharp
 var delayedSink = new DelayedDataSink<string>(
     delay: TimeSpan.FromSeconds(3),
     process: async item =>
@@ -66,7 +67,7 @@ var delayedSink = new DelayedDataSink<string>(
 await delayedSink.ProcessAsync("ItemA");
 await delayedSink.ProcessAsync("ItemB");
 await delayedSink.CompleteAsync();
-\```
+```
 
 ---
 
@@ -74,7 +75,7 @@ await delayedSink.CompleteAsync();
 
 Manages concurrency with a configurable number of workers.
 
-\```csharp
+```csharp
 var bufferedSink = new BufferedDataSink<string>(
     maxWorkers: 3,
     process: async item =>
@@ -86,7 +87,32 @@ var bufferedSink = new BufferedDataSink<string>(
 await bufferedSink.ProcessAsync("Task1");
 await bufferedSink.ProcessAsync("Task2");
 await bufferedSink.CompleteAsync();
-\```
+```
+
+---
+
+### 4. Elastic Worker Data Sink
+
+Dynamically scales the number of workers based on the size of the queue and the configured scaling factor.
+
+```csharp
+var elasticSink = new ElasticWorkerDataSink<string>(
+    minWorkers: 2,
+    maxWorkers: 10,
+    scalingFactor: 4, // Adjusts workers when queue size is 4x or 1/4 of current workers
+    process: async item =>
+    {
+        Console.WriteLine($"Processing {item} by worker {Task.CurrentId}");
+        await Task.Delay(200); // Simulate processing
+    });
+
+// Adding items to the sink
+await elasticSink.ProcessAsync("Item1");
+await elasticSink.ProcessAsync("Item2");
+
+// Complete the sink
+await elasticSink.CompleteAsync();
+```
 
 ---
 
@@ -104,6 +130,14 @@ Each data sink can be customized to suit specific needs:
 - **Buffered Data Sink**:
   - `maxWorkers`: Number of concurrent workers for processing.
 
+- **Elastic Worker Data Sink**:
+  - `minWorkers`: Minimum number of workers that will always be active.
+  - `maxWorkers`: Maximum number of workers allowed.
+  - `scalingFactor`: Determines when to scale workers:
+    - Workers are added when queue size is `scalingFactor` times the current worker count.
+    - Workers are removed when queue size is `1/scalingFactor` of the current worker count.
+  - `process`: A delegate (`Func<T, Task>`) representing the logic to process each item.
+
 ---
 
 ## 🤝 Contributing
@@ -118,6 +152,4 @@ This library is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ---
 
-## 🙌 Acknowledgments
-
-Special thanks to everyone contributing to modernizing data processing patterns in .NET.
+##
