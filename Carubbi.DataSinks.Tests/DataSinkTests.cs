@@ -67,7 +67,36 @@ public class DataSinkTests
         var counter = 0;
         while (counter < 10)
         {
-            for (int i = 0; i < counter; i++)
+            for (int i = 0; i <= counter; i++)
+            {
+                await bufferedSink.ProcessAsync($"item{counter}");
+                Debug.WriteLine($"item{counter} added to data sink");
+            }
+            await Task.Delay(200 * counter);
+            counter++;
+        }
+        await bufferedSink.CompleteAsync();
+    }
+
+
+    [Fact]
+    public async Task DynamicBufferedDataSink()
+    {
+
+        var bufferedSink = new DynamicBufferedDataSink<string>(
+            minWorkers: 3,
+            maxWorkers: 6,
+            scalingFactor: 4,
+            process: async item =>
+            {
+                Debug.WriteLine($"Processed by worker: {item}");
+                await Task.Delay(300);
+            });
+
+        var counter = 0;
+        while (counter < 50)
+        {
+            for (int i = 0; i <= counter; i++)
             {
                 await bufferedSink.ProcessAsync($"item{counter}");
                 Debug.WriteLine($"item{counter} added to data sink");
